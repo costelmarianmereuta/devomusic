@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>Demo</title>
+    <meta name="description" content=""/>
+    <meta name="viewport" content="width=device-width"/>
+    <base href="/"/>
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css"/>
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/webjars/js-cookie/js.cookie.js"></script>
+</head>
+<script type="text/javascript">
+    $.ajaxSetup({
+    beforeSend : function(xhr, settings) {
+      if (settings.type == 'POST' || settings.type == 'PUT'
+          || settings.type == 'DELETE') {
+        if (!(/^http:.*/.test(settings.url) || /^https:.*/
+            .test(settings.url))) {
+          // Only send the token to relative URLs i.e. locally.
+          xhr.setRequestHeader("X-XSRF-TOKEN",
+              Cookies.get('XSRF-TOKEN'));
+        }
+      }
+    }
+    });
+
+    $.get("/passwordUser", function(data) {
+        console.log(data);
+        $("#passwordUser").html(data.userAuthentication.details.name);
+        $(".unauthenticated").hide()
+        $(".authenticated").show()
+    });
+
+    var logout = function() {
+        $.post("/logout", function() {
+            $("#passwordUser").html('');
+            $(".unauthenticated").show();
+            $(".authenticated").hide();
+        })
+        return true;
+    }
+</script>
+
+<script type="text/javascript">
+    var submitform = function() {
+        var formData = JSON.stringify($("#loginForm").serializeArray());
+
+        $.ajax({
+            type: 'POST',
+            url: '/api/auth/login',
+            data: '{"usernameOrEmail":"agtena","password":"arne"}', // or JSON.stringify ({name: 'jonas'}),
+            success: function(data) { alert('data: ' + data); },
+            contentType: "application/json",
+            dataType: 'json'
+        });
+    }
+</script>
+
+<body>
+
+    <h1>Demo</h1>
+    <div class="container unauthenticated">
+        <h1>Log in with:</h1>
+        <form name="loginForm">
+            <input name="usernameOrEmail" type="text" placeholder="Username or Email">
+            <input name="password" type="password">
+            <button type="submit" onclick="submitform()">Submit</button>
+        </form>
+        <a href="/login/facebook">Facebook</a>
+        <a href="/login/google">Google</a>
+    </div>
+    <div class="container authenticated" style="display:none">
+        Logged in as: <span id="passwordUser"></span>
+        <div>
+            <button onClick="logout()" class="btn btn-primary">Logout</button>
+        </div>
+    </div>
+
+
+
+</body>
+</html>
